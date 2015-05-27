@@ -11,8 +11,8 @@ Version: 1.1
 
 session_start();
 
-add_action('wp_footer', 'add_spherupPlugin');
-function add_spherupPlugin() {
+add_action('wp_footer', 'add_zoomd_plugin');
+function add_zoomd_plugin() {
     $clientId  = get_option('zoomd_clientId');
     if( $clientId ) {
         wp_register_script( 'zoomd_search', plugins_url( 'js/sphereup.widget.min.js', __FILE__ ), array('jquery'), 1, true);
@@ -30,6 +30,15 @@ function add_spherupPlugin() {
     <?php
     }
  }
+
+function zoomd_plugin_admin_scripts() {
+    if ( is_admin() ){
+        if ( isset($_GET['page']) && $_GET['page'] == 'zoomd_settings' ) {
+            wp_enqueue_script('jquery');
+        }
+    }
+}
+add_action( 'admin_init', 'zoomd_plugin_admin_scripts' );
 
 function zoomd_plugin_deactivation() {
     delete_option('zoomd_siteurl');
@@ -56,10 +65,16 @@ function zoomd_action_links( $links ) {
 }
 add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'zoomd_action_links' );
 
-
 add_action('admin_notices', 'zoomd_admin_notices');
 function zoomd_admin_notices() {
     if ($notices= get_option('zoomd_deferred_admin_notices')) {
+        echo "<script>
+            var $ = jQuery;
+            $(document).ready(function() {
+                $('#setting-error-settings_updated').hide();
+            });
+
+        </script>";
         foreach ($notices as $notice) {
             echo "<div class='error'><p>$notice</p></div>";
         }
@@ -89,8 +104,17 @@ function zoomd_display_settings() {
         $result = json_decode($json);
 
         if(isset($result->error)) {
+            $error = "Something went wrong, please try saving again.";
+            if(strcasecmp('Bad data', $result->error) == 0) {
+                $error = "Please review and correct the submitted information and try saving again.";
+            } else if (strcasecmp('Account with another id', substr($result->error, 0, 23)) == 0) {
+                $error = "This email is already registered in the system, please use a different one.";
+            } else if (strcasecmp('Unsupported', $result->error) == 0) {
+                $error = "Unfortunately, this site is currently unsupported by Zoomd Search. Please feel free to try us again in the future.";
+            }
 
-            update_option('zoomd_deferred_admin_notices', array("Error retturned from the service: ". $result->error) );
+            update_option('zoomd_deferred_admin_notices', array($error) );
+            zoomd_admin_notices();
         }
 
         if(isset($result->clientId)) {
