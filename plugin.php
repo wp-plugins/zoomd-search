@@ -6,7 +6,7 @@ Description: A beautiful search experience, that engages your visitors, improves
 Author: Zoomd
 Author URI: http://zoomd.com/
 License: GPLv2 or later
-Version: 1.1
+Version: 1.2
 */
 
 session_start();
@@ -18,7 +18,7 @@ function add_zoomd_plugin() {
         wp_register_script( 'zoomd_search', plugins_url( 'js/sphereup.widget.min.js', __FILE__ ), array('jquery'), 1, true);
         wp_enqueue_script('zoomd_search');
         ?>
-        <!-- START SPHEREUP -->
+        <!-- START Zoomd -->
         <script type="text/javascript">
             jQuery(document).ready(function($) {
                 if(typeof SphereUp != 'undefined' && typeof SphereUp.SphereUpWidget != 'undefined') {
@@ -26,7 +26,7 @@ function add_zoomd_plugin() {
                 }
             });
         </script>
-        <!-- END SPHEREUP -->
+        <!-- END Zoomd -->
     <?php
     }
  }
